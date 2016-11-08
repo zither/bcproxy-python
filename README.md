@@ -1,2 +1,3 @@
 # bcproxy-python
-bcproxy in python
+
+python port of [lotheac/bcproxy](https://github.com/lotheac/bcproxy)
