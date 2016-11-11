@@ -42,6 +42,10 @@ class Parser:
     def is_valid_number(self, letter):
         return letter in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] 
 
+    def parse(self, data):
+        self.reset()
+        return self.process(data)
+
     def reset(self):
         self.output = ""
 
@@ -51,7 +55,7 @@ class Parser:
         else:
             self.output += chars
 
-    def parse(self, data):
+    def process(self, data):
         for index, char in enumerate(data):
             if self.stats == S_TEXT:
                 if char == "\033":
@@ -112,15 +116,10 @@ class Parser:
                         self.stats = S_TEXT
                     elif self.expression.code == "10" and self.expression.argu == "spec_prompt":
                         self.stats = S_AFTER_TEN
-                    elif not self.stack:
-                        self.output += self.parse_exp(self.expression)
-                        self.expression = None
-                        self.stats = S_TEXT
                     else:
-                        closed_expression = self.expression
-                        parent_expression = self.stack.pop()
-                        parent_expression.content += self.parse_exp(closed_expression)
-                        self.expression = parent_expression
+                        tmp_content = self.parse_exp(self.expression)
+                        self.expression = self.stack.pop() if self.stack else None
+                        self.do_with_text(tmp_content)
                         self.stats = S_TEXT
                 else:
                     self.do_with_text("\033" + ">" + self.tmp_code + char)
@@ -146,10 +145,7 @@ class Parser:
                     self.expression = None
                     self.stats = S_TEXT
                 else:
-                    if self.stack:
-                        self.expression = self.stack.pop()
-                    else:
-                        self.expression = None
+                    self.expression = self.stack.pop() if self.stack else None
                     self.do_with_text("\377" + char)
                     self.stats = S_TEXT
                 continue

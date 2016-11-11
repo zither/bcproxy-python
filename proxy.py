@@ -27,7 +27,6 @@ class LocalParser (RemoteParser):
     def parse(self, data):
         #with open("logs_debug.txt", 'ab') as logs:
         #    logs.write(data)
-        self.bc_parser.reset()
         return self.bc_parser.parse(data) 
 
 class Forward:
