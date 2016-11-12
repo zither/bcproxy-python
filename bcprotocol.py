@@ -56,7 +56,7 @@ class Parser:
             self.output += chars
 
     def process(self, data):
-        for index, char in enumerate(data):
+        for char in data:
             if self.stats == S_TEXT:
                 if char == "\033":
                     self.stats = S_ESC
@@ -172,11 +172,8 @@ class Parser:
         if exp.code == "20" or exp.code == "21":
             if not self.options.enable_color:
                 return exp.content
-            elif exp.argu and len(exp.argu) == 6:
-                short, rgb = colortrans.rgb2short(exp.argu)
-                return "\033[{}8;5;{}m{}\033[0m".format(3 if exp.code == "20" else 4, short, exp.content)
-            elif exp.argu and len(exp.argu) > 0 and len(exp.argu) < 6:
-                rgb = exp.argu.zfill(6)
+            elif exp.argu:
+                rgb = exp.argu.zfill(6) if len(exp.argu) < 6 else exp.argu
                 short, _ = colortrans.rgb2short(rgb)
                 return "\033[{}8;5;{}m{}\033[0m".format(3 if exp.code == "20" else 4, short, exp.content)
 
