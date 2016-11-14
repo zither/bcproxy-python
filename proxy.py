@@ -25,8 +25,6 @@ class LocalParser (RemoteParser):
         self.bc_parser = bcprotocol.Parser(options)
 
     def parse(self, data):
-        #with open("logs_debug.txt", 'ab') as logs:
-        #    logs.write(data)
         return self.bc_parser.parse(data) 
 
 class Forward:
@@ -64,7 +62,7 @@ class TheServer:
                     break
 
                 self.data = self.s.recv(buffer_size)
-                if len(self.data) == 0:
+                if len(self.data) == 0 or self.data ==  -1:
                     self.on_close()
                     break
                 else:
