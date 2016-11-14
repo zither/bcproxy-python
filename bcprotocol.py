@@ -39,8 +39,8 @@ class Parser:
         self.tmp_code = ""
         self.expression = None
 
-    def is_valid_number(self, letter):
-        return letter in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] 
+    def is_valid_code(self, char):
+        return char.isdigit() 
 
     def parse(self, data):
         self.reset()
@@ -79,7 +79,7 @@ class Parser:
                 continue
 
             if self.stats == S_TAG_OPEN:
-                if self.is_valid_number(char):
+                if self.is_valid_code(char):
                     self.tmp_code += char
                     self.stats = S_OPEN_CODE
                 else:
@@ -88,7 +88,7 @@ class Parser:
                 continue
 
             if self.stats == S_OPEN_CODE:
-                if self.is_valid_number(char):
+                if self.is_valid_code(char):
                     if self.expression:
                         self.stack.append(self.expression)
                     self.expression = Expression()
@@ -101,7 +101,7 @@ class Parser:
                 continue
 
             if self.stats == S_TAG_CLOSE:
-                if self.is_valid_number(char):
+                if self.is_valid_code(char):
                     self.tmp_code += char
                     self.stats = S_CLOSE_CODE
                 else:
@@ -110,7 +110,7 @@ class Parser:
                 continue
             
             if self.stats == S_CLOSE_CODE:
-                if self.is_valid_number(char):
+                if self.is_valid_code(char):
                     code = self.tmp_code + char
                     if not self.expression or self.expression.code != code:
                         self.stats = S_TEXT
@@ -174,6 +174,9 @@ class Parser:
                 return exp.content
             elif exp.argu:
                 rgb = exp.argu.zfill(6) if len(exp.argu) < 6 else exp.argu
+                # fix some invalid RGB color from server
+                if len(rgb) > 6:
+                    rgb = ''.join(c for c in rgb if c.isdigit())                
                 short, _ = colortrans.rgb2short(rgb)
                 return "\033[{}8;5;{}m{}\033[0m".format(3 if exp.code == "20" else 4, short, exp.content)
 
@@ -182,7 +185,7 @@ class Parser:
                 return "Exited to realm map.\r\n"
             elif exp.content.startswith("BAT_MAPPER;;"):
                 room = exp.content.split(";;")
-                return "[-{}-]{};;{};;{};;{};;{}\r\n".format(exp.code, room[1], room[2], room[3], room[4], room[7])
+                return "[-{}-]{}\r\n".format(exp.code, ";;".join(room[1:5] + [room[7]]))
 
         return "[-{}-]{}\r\n".format(exp.code, exp.content)
 
