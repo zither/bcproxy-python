@@ -61,12 +61,17 @@ class TheServer:
                     self.on_accept()
                     break
 
-                self.data = self.s.recv(buffer_size)
-                if len(self.data) == 0 or self.data ==  -1:
+                try:
+                    self.data = self.s.recv(buffer_size)
+                    if len(self.data) == 0 or self.data ==  -1:
+                        self.on_close()
+                        break
+                    else:
+                        self.on_recv()
+                except socket.error, ex:
+                    print ex
                     self.on_close()
-                    break
-                else:
-                    self.on_recv()
+
                 
                 
     def on_accept(self):
@@ -82,6 +87,7 @@ class TheServer:
             self.parser[clientsock] = RemoteParser()
             self.parser[forward] = LocalParser(options)
 
+            # Enable batclient private protocol
             forward.send("\033bc 1\n")
         else:
             print "Can't establish connection with remote server.",
