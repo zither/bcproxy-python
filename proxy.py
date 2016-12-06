@@ -69,8 +69,7 @@ class TheServer:
                     else:
                         self.on_recv()
                 except socket.error, ex:
-                    print ex
-                    self.on_close()
+                    self.on_drop()
 
                 
                 
@@ -96,15 +95,17 @@ class TheServer:
 
     def on_close(self):
         print self.s.getpeername(), "has disconnected"
-        #remove objects from input_list
-        self.input_list.remove(self.s)
-        self.input_list.remove(self.channel[self.s])
         out = self.channel[self.s]
         # close the connection with client
         self.channel[out].close()  # equivalent to do self.s.close()
         # close the connection with remote server
         self.channel[self.s].close()
-        # delete both objects from channel dict
+        self.on_drop()
+
+    def on_drop(self):
+        out = self.channel[self.s]
+        self.input_list.remove(self.s)
+        self.input_list.remove(out)
         del self.channel[out]
         del self.channel[self.s]
 
